@@ -1,6 +1,7 @@
 from qdrant_client import QdrantClient
 from qdrant_client.http.models import Distance, VectorParams
 from qdrant_client.http.models import PointStruct
+from dotenv import load_dotenv
 import os
 import tqdm
 import openai
@@ -17,6 +18,7 @@ def to_embeddings(items):
 if __name__ == '__main__':
     client = QdrantClient("127.0.0.1", port=6333)
     collection_name = "data_collection"
+    load_dotenv()
     openai.api_key = os.getenv("OPENAI_API_KEY")
     # 创建collection
     client.recreate_collection(

@@ -1,6 +1,7 @@
 from flask import Flask
 from flask import render_template
 from flask import request
+from dotenv import load_dotenv
 from qdrant_client import QdrantClient
 import openai
 import os
@@ -53,7 +54,6 @@ def query(text):
     """
     client = QdrantClient("127.0.0.1", port=6333)
     collection_name = "data_collection"
-    from dotenv import load_dotenv
     load_dotenv()
     openai.api_key = os.getenv("OPENAI_API_KEY")
     sentence_embeddings = openai.Embedding.create(
