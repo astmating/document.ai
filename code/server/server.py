@@ -23,9 +23,9 @@ def prompt(question, answers):
     """
     demo_q = '使用以下段落来回答问题："成人头疼，流鼻涕是感冒还是过敏？"\n1. 普通感冒：您会出现喉咙发痒或喉咙痛，流鼻涕，流清澈的稀鼻涕（液体），有时轻度发热。\n2. 常年过敏：症状包括鼻塞或流鼻涕，鼻、口或喉咙发痒，眼睛流泪、发红、发痒、肿胀，打喷嚏。'
     demo_a = '成人出现头痛和流鼻涕的症状，可能是由于普通感冒或常年过敏引起的。如果病人出现咽喉痛和咳嗽，感冒的可能性比较大；而如果出现口、喉咙发痒、眼睛肿胀等症状，常年过敏的可能性比较大。'
-    system = '你是一个医院问诊机器人'
+    system = '你是唯一客服助手机器人'
     q = '使用以下段落来回答问题，如果段落内容不相关就返回未查到相关信息："'
-    q += question + '"'
+    q += question + '"\n'
     # 带有索引的格式
     for index, answer in enumerate(answers):
         q += str(index + 1) + '. ' + str(answer['title']) + ': ' + str(answer['text']) + '\n'
@@ -37,8 +37,6 @@ def prompt(question, answers):
     """
     res = [
         {'role': 'system', 'content': system},
-        {'role': 'user', 'content': demo_q},
-        {'role': 'assistant', 'content': demo_a},
         {'role': 'user', 'content': q},
     ]
     return res
@@ -60,6 +58,7 @@ def query(text):
         model="text-embedding-ada-002",
         input=text
     )
+
     """
     因为提示词的长度有限，所以我只取了搜索结果的前三个，如果想要更多的搜索结果，可以把limit设置为更大的值
     """
@@ -81,11 +80,12 @@ def query(text):
         else:
             summary = result.payload["text"]
         answers.append({"title": result.payload["title"], "text": summary})
-
+    promptMessage=prompt(text, answers)
+    print(promptMessage)
     completion = openai.ChatCompletion.create(
         temperature=0.7,
         model="gpt-3.5-turbo",
-        messages=prompt(text, answers),
+        messages=promptMessage,
     )
 
     return {
@@ -103,6 +103,7 @@ def hello_world():
 def search():
     data = request.get_json()
     search = data['search']
+
 
     res = query(search)
 
