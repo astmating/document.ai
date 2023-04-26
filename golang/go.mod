@@ -1,6 +1,6 @@
 module knowledge
 
-go 1.17
+go 1.18
 
 require (
 	baliance.com/gooxml v1.0.1

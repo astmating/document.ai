@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>控制面板</title>
+    <script src="https://cdn.bootcdn.net/ajax/libs/vue/2.6.11/vue.min.js"></script>
+    <!-- 引入样式 -->
+    <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
+    <!-- 引入组件库 -->
+    <script src="https://unpkg.com/element-ui/lib/index.js"></script>
+    <script src="https://unpkg.com/jquery@3.6.4/dist/jquery.js"></script>
+    <style>
+        a{
+            color: #409EFF;
+        }
+    </style>
+</head>
+<body style="background-color: #eef0f6;padding: 20px">
+    <div id="app" style="display: flex;width: 100%">
+        <template>
+            <el-tabs type="border-card" @tab-click="" style="width: 100%">
+                <el-tab-pane label="知识库">
+                    <el-table
+                            :data="points"
+                    >
+                        <el-table-column
+                                prop="id"
+                                label="id">
+                        </el-table-column>
+                        <el-table-column
+                                label="text">
+                            <template slot-scope="scope">
+                                <div class="cardBoxArticle" >
+                                    <div v-html="scope.row.payload.text"></div>
+                                </div>
+                            </template>
+                        </el-table-column>
+                        <el-table-column
+                                width="100px"
+                                label="操作">
+                            <template slot-scope="scope">
+                                <el-button @click="delPoints(scope.row.id)"  type="danger" size="small" icon="el-icon-delete" circle></el-button>
+                            </template>
+                        </el-table-column>
+                    </el-table>
+                </el-tab-pane>
+                <el-tab-pane label="批量上传">
+                        <el-descriptions style="font-size: 14px;width: 1000px" direction="vertical" :column="1" border>
+                            <el-descriptions-item label="上传TXT文档">
+                                <el-upload
+                                        action="/{{.collectName}}/uploadDoc"
+                                        :on-success="uploadDocSuccess"
+                                        :on-error="uploadError"
+                                        :before-upload="beforeUpload"
+                                >
+                                    <el-button type="primary" icon="el-icon-upload">上传 txt</el-button>
+                                </el-upload>
+                            </el-descriptions-item>
+                            <el-descriptions-item label="上传Word文档，注意只支持.docx">
+                                <el-upload
+                                        action="/{{.collectName}}/uploadDoc"
+                                        :on-success="uploadDocSuccess"
+                                        :on-error="uploadError"
+                                        :before-upload="beforeUpload"
+                                >
+                                    <el-button type="primary" icon="el-icon-upload">上传docx</el-button>
+                                </el-upload>
+                            </el-descriptions-item>
+                            <el-descriptions-item label="上传Excel">
+                                <el-upload
+                                        action="/{{.collectName}}/uploadDoc"
+                                        :on-success="uploadDocSuccess"
+                                        :on-error="uploadError"
+                                        :before-upload="beforeUpload"
+                                >
+                                    <el-button type="primary" icon="el-icon-upload">上传xlsx</el-button>
+                                </el-upload>
+                            </el-descriptions-item>
+                        </el-descriptions>
+
+                </el-tab-pane>
+                <el-tab-pane label="单个上传">
+                    <el-form style="font-size: 14px;width: 1000px">
+                        <el-form-item label="ID(留空会生成默认UUID,可以输入数值型或UUID,如果ID存在就是覆盖修改)">
+                            <el-input v-model="id"></el-input>
+                        </el-form-item>
+                        <el-form-item label="TEXT">
+                            <el-input type="textarea" rows="15" v-model="text"></el-input>
+                        </el-form-item>
+                        <el-form-item>
+                            <el-button @click="addPoints" type="primary" size="small">上传</el-button>
+                        </el-form-item>
+                    </el-form>
+                </el-tab-pane>
+            </el-tabs>
+        </template>
+    </div>
+</body>
+<script>
+    const collectName="{{.collectName}}";
+    new Vue({
+        el: '#app',
+        delimiters:["<{","}>"],
+        data: {
+            points:[],
+            id:"",
+            text:"",
+            loading:null,
+        },
+        methods: {
+            getAllKnowledge(){
+                let _this=this;
+                fetch("/"+collectName+'/points', {
+                    method: 'GET',
+                }).then(res => res.json()).then(data => {
+                    if(data.result&&data.result.points){
+                        _this.points=data.result.points;
+                    }
+                });
+            },
+            addPoints(){
+                let _this=this;
+                let  postData={
+                    id:this.id,
+                    content:this.text
+                }
+                const encodedData = new URLSearchParams(postData).toString()
+                fetch("/"+collectName+'/training', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded'
+                    },
+                    body: encodedData
+                }).then(res => res.json()).then(data => {
+                    _this.$message({
+                        message: "success",
+                        type: 'success'
+                    });
+                    _this.getAllKnowledge();
+                });
+            },
+            delPoints(id){
+                let _this=this;
+                fetch("/"+collectName+'/delPoints?id='+id, {
+                    method: 'GET',
+                }).then(res => res.json()).then(data => {
+                    _this.getAllKnowledge();
+                });
+            },
+            //展开收起效果
+            displayHide:function(){
+                setTimeout(function(){
+                    //展开和收起效果
+                    $(".cardBoxArticle").each(function() {
+                        let cardBoxArticle = $(this);
+                        cardBoxArticle.after(`<a class="cardBoxToggle" href="javascript:;">展开</a>`);
+                        let cardBoxToggle = $(".cardBoxToggle", cardBoxArticle.parent());
+                        let height = cardBoxArticle.height();
+                        if (height > 70) {
+                            cardBoxToggle.text("展开").show();
+                            cardBoxArticle.css({
+                                "height": "70px",
+                                "overflow": "hidden",
+                            });
+                        } else {
+                            cardBoxToggle.hide();
+                        }
+                        // 绑定点击事件
+                        cardBoxToggle.click(function() {
+                            height = cardBoxArticle.height();
+                            if (height > 70) {
+                                cardBoxToggle.text("展开");
+                                cardBoxArticle.css({
+                                    "height": "70px",
+                                    "overflow": "hidden",
+                                });
+                            } else {
+                                cardBoxArticle.css({
+                                    "height": "auto",
+                                    "overflow": "auto",
+                                });
+                                cardBoxToggle.text("收起");
+                            }
+                        });
+                    });
+                },1000);
+            },
+            //上传文件失败
+            uploadDocSuccess(response, file, fileList){
+                this.loading.close();
+                if(response.code==200){
+                    this.$message({
+                        message: "上传成功",
+                        type: 'success'
+                    });
+                    this.getAllKnowledge();
+                }else{
+                    this.$message({
+                        message: response.msg,
+                        type: 'error'
+                    });
+                }
+            },
+            //上传文件失败
+            uploadError(){
+                this.loading.close();
+            },
+            //上传之前
+            beforeUpload(file){
+                this.loading = this.$loading({
+                    lock: true,
+                    text: "上传中",
+                });
+
+                let ext=file.name.substring(file.name.lastIndexOf(".")+1);
+                if (ext != 'txt' && ext != 'docx' && ext != 'xlsx') {
+                    this.$message.error('上传文件只能是 .txt .docx .xlsx 格式!');
+                    this.loading.close();
+                    return false;
+                }
+            },
+        },
+        mounted:function(){
+
+        },
+        created: function () {
+            this.getAllKnowledge();
+            this.displayHide();
+        }
+    })
+</script>
+</html>
