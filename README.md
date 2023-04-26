@@ -1,17 +1,15 @@
 # document.ai
 基于向量数据库与GPT3.5的通用本地知识库方案(A universal local knowledge base solution based on vector database and GPT3.5)
 
-原项目为python语言的，现在我重写为了golang语言，在golang目录下
 
 ## 目录
 
- `code` 目录中有本次MSD示例的相关示例代码
-
+原项目为python语言的，现在我重写为了golang语言，在golang目录
 
 
 ## 流程
 
-![](./docs/flow.png)
+![](./flow.png)
 
 整个流程非常简单，也没有复杂的地方，相信关注GPT领域的都会看到过如上的流程。
 
