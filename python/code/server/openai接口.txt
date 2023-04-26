@@ -1,0 +1,7 @@
+curl https://openai.api2d.net/v1/embeddings \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer fk188528-JAPbwe87SKzXwGBroAIdcOLfSC1bAMVUY" \
+  -d '{
+    "input": "测试",
+    "model": "text-embedding-ada-002"
+  }'
